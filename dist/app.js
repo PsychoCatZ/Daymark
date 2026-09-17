@@ -1,5 +1,5 @@
 const STORAGE_KEYS = {
-  tasks: "daymark.tasks.v1",
+  tasks: "daymark.tasks.v2",
   energy: "daymark.energy.v1",
   timer: "daymark.timer.v1",
 };

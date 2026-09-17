@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Daymark — демонстрационный локальный сервис для планирования дня, задач и фокус-сессий." />
+    <meta name="theme-color" content="#1649d8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231649d8'/%3E%3Cpath d='M18 17h17c9 0 15 6 15 15S44 47 35 47H18V17Zm9 8v14h7c4 0 7-3 7-7s-3-7-7-7h-7Z' fill='%23ffd83d'/%3E%3C/svg%3E" />
+    <title>Daymark — планировщик дня</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Перейти к задачам</a>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Основная навигация">
+        <a class="brand" href="#today" aria-label="Daymark — сегодня">
+          <span class="brand-mark" aria-hidden="true">D</span>
+          <span>daymark</span>
+        </a>
+
+        <nav class="side-nav" aria-label="Разделы">
+          <button class="nav-item is-active" data-view="today" type="button">
+            <span aria-hidden="true">◉</span><span>Сегодня</span>
+          </button>
+          <button class="nav-item" data-view="upcoming" type="button">
+            <span aria-hidden="true">↗</span><span>На неделе</span>
+          </button>
+          <button class="nav-item" data-view="completed" type="button">
+            <span aria-hidden="true">✓</span><span>Готово</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <p class="eyebrow">Баланс недели</p>
+          <strong><span id="weekly-count">2</span> из <span id="weekly-total">7</span></strong>
+          <p>запланированных дел завершено</p>
+          <div class="progress-track" aria-hidden="true"><span style="width: 67%"></span></div>
+        </div>
+
+        <button class="profile-button" type="button" id="profile-button" aria-label="Открыть настройки профиля">
+          <span class="avatar" aria-hidden="true">АК</span>
+          <span><strong>Анна К.</strong><small>Локальный профиль</small></span>
+          <span aria-hidden="true">•••</span>
+        </button>
+      </aside>
+
+      <main id="main-content" class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="today-label">Четверг, 17 сентября</p>
+            <h1 id="view-title">Доброе утро, Анна</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" id="search-toggle" type="button" aria-label="Открыть поиск" aria-expanded="false">
+              <span aria-hidden="true">⌕</span>
+            </button>
+            <button class="primary-button" id="add-task-button" type="button">
+              <span aria-hidden="true">＋</span> Новая задача
+            </button>
+          </div>
+        </header>
+
+        <section class="search-panel" id="search-panel" hidden aria-label="Поиск по задачам">
+          <label for="search-input">Поиск по названию или проекту</label>
+          <div class="search-input-wrap">
+            <span aria-hidden="true">⌕</span>
+            <input id="search-input" type="search" placeholder="Например, «презентация»" autocomplete="off" />
+            <button id="search-close" type="button" aria-label="Закрыть поиск">Закрыть</button>
+          </div>
+        </section>
+
+        <section class="day-strip" aria-label="Выбор дня">
+          <button type="button" data-date-offset="-2"><span>ВТ</span><strong>15</strong></button>
+          <button type="button" data-date-offset="-1"><span>СР</span><strong>16</strong></button>
+          <button class="is-selected" type="button" data-date-offset="0" aria-current="date"><span>ЧТ</span><strong>17</strong></button>
+          <button type="button" data-date-offset="1"><span>ПТ</span><strong>18</strong></button>
+          <button type="button" data-date-offset="2"><span>СБ</span><strong>19</strong></button>
+          <button type="button" data-date-offset="3"><span>ВС</span><strong>20</strong></button>
+          <button type="button" data-date-offset="4"><span>ПН</span><strong>21</strong></button>
+        </section>
+
+        <div class="dashboard-grid">
+          <section class="tasks-panel" aria-labelledby="tasks-heading">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">План на день</p>
+                <h2 id="tasks-heading">Главное — в фокусе</h2>
+              </div>
+              <div class="task-filters" role="group" aria-label="Фильтры задач">
+                <button type="button" class="is-active" data-filter="all">Все</button>
+                <button type="button" data-filter="work">Работа</button>
+                <button type="button" data-filter="personal">Личное</button>
+              </div>
+            </div>
+
+            <div id="task-list" class="task-list" aria-live="polite"></div>
+
+            <div id="empty-state" class="empty-state" hidden>
+              <span aria-hidden="true">✓</span>
+              <h3>Здесь пока свободно</h3>
+              <p>Измените фильтр или добавьте задачу на этот день.</p>
+              <button class="text-button" type="button" id="empty-add">Добавить задачу</button>
+            </div>
+          </section>
+
+          <aside class="insights-column" aria-label="Сводка дня">
+            <section class="focus-card">
+              <div class="focus-card-top">
+                <span class="focus-icon" aria-hidden="true">◎</span>
+                <span class="pill">Режим концентрации</span>
+              </div>
+              <h2>25 минут<br />для важного</h2>
+              <p>Выберите задачу и уберите всё лишнее. Таймер сохранится, даже если закрыть вкладку.</p>
+              <button class="dark-button" id="start-focus-button" type="button">Начать фокус <span aria-hidden="true">→</span></button>
+            </section>
+
+            <section class="energy-card" aria-labelledby="energy-title">
+              <div>
+                <p class="eyebrow">Самочувствие</p>
+                <h2 id="energy-title">Энергия сегодня</h2>
+              </div>
+              <div class="energy-scale" role="group" aria-label="Уровень энергии">
+                <button type="button" data-energy="1" aria-label="Очень низкая энергия">1</button>
+                <button type="button" data-energy="2" aria-label="Низкая энергия">2</button>
+                <button type="button" data-energy="3" aria-label="Средняя энергия">3</button>
+                <button class="is-selected" type="button" data-energy="4" aria-label="Хорошая энергия" aria-pressed="true">4</button>
+                <button type="button" data-energy="5" aria-label="Отличная энергия">5</button>
+              </div>
+              <p class="energy-note" id="energy-note">Хороший темп: оставьте один спокойный слот после обеда.</p>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Мобильная навигация">
+      <button class="is-active" data-view="today" type="button"><span aria-hidden="true">◉</span>Сегодня</button>
+      <button data-view="upcoming" type="button"><span aria-hidden="true">↗</span>Неделя</button>
+      <button data-view="completed" type="button"><span aria-hidden="true">✓</span>Готово</button>
+      <button id="mobile-add" type="button"><span aria-hidden="true">＋</span>Добавить</button>
+    </nav>
+
+    <dialog id="task-dialog" class="dialog">
+      <form id="task-form" method="dialog" novalidate>
+        <div class="dialog-header">
+          <div><p class="eyebrow">Планирование</p><h2 id="dialog-title">Новая задача</h2></div>
+          <button type="button" class="icon-button dialog-close" aria-label="Закрыть окно">×</button>
+        </div>
+        <input type="hidden" id="task-id" />
+        <div class="field">
+          <label for="task-name">Что нужно сделать?</label>
+          <input id="task-name" name="name" type="text" maxlength="80" placeholder="Например, собрать презентацию" required />
+          <small class="field-error" id="task-name-error"></small>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="task-category">Категория</label>
+            <select id="task-category" name="category">
+              <option value="work">Работа</option>
+              <option value="personal">Личное</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="task-time">Время</label>
+            <input id="task-time" name="time" type="time" value="10:00" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="task-project">Проект или контекст</label>
+          <input id="task-project" name="project" type="text" maxlength="40" placeholder="Например, Портфолио" />
+        </div>
+        <div class="dialog-actions">
+          <button class="secondary-button dialog-close" type="button">Отмена</button>
+          <button class="primary-button" type="submit">Сохранить задачу</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="focus-dialog" class="dialog focus-dialog">
+      <div class="focus-modal-content">
+        <button type="button" class="icon-button focus-close" aria-label="Закрыть таймер">×</button>
+        <p class="eyebrow">Фокус-сессия</p>
+        <h2 id="focus-task-title">Время сосредоточиться</h2>
+        <div class="timer" id="timer" role="timer" aria-live="off">25:00</div>
+        <p class="timer-status" id="timer-status">Выберите задачу, на которой хотите сосредоточиться.</p>
+        <label class="sr-only" for="focus-task-select">Задача для фокус-сессии</label>
+        <select id="focus-task-select"></select>
+        <div class="timer-actions">
+          <button class="primary-button" id="timer-toggle" type="button">Запустить</button>
+          <button class="secondary-button" id="timer-reset" type="button">Сбросить</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
